@@ -1,0 +1,3 @@
+Keeloq	KEYWORD1
+decrypt KEYWORD2
+encrypt	KEYWORD2

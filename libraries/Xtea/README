@@ -1,0 +1,2 @@
+Just a small, fast encryption library.  Uses Xtea algorithm, which is thought to be fairly secure.  I compared results to Xtea encryption using mcrypt on a Linux machine and verified that I got the same results.  You will need to split the information you need to encrypt into 8-byte chunks and make longs out of these to use this algorithm.
+
