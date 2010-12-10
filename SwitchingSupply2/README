@@ -1,0 +1,26 @@
+This is a switching voltage booster.  It provides a regulated voltage output.  
+
+Some external circuitry is required.  The outPin must be connected to the
+gate of a switching transistor, such as the IRF510.  The Source is connected
+to ground, and the drain is connected through an inductor (value is not 
+critical - I used 180 uH) to the positive supply.  The drain is also connected
+to a diode rated for the expected voltage.  A small capacitor (good for the 
+expected voltage) is connected between the other side of the diode and ground.
+This is where the output voltage is produced.  Connect two resistors across 
+the output to form a voltage divider, and connect the center of the divider 
+to inPin.  
+
+The Arduino will adjust the pulse width of the pulses into the FET so as to 
+maintain 1 volt at inPin.  So if, for example, you use 22k and 1k for the 
+voltage divider, you should see 23 volts on the output.  As a larger load is
+applied, the microcontroller will increase the pulse width to maintain the
+output at the same voltage level.  
+
+If you have an LCD, connect it to the Arduino to get information about the
+currently measured voltage at the inPin, as well as the present pulse width.
+An LCD is not absolutely necessary for operation, but may be useful for 
+debugging purposes to get the circuit working initially.
+
+I have successfully used this circuit to power a neon lamp, using a divider
+composed of 10k and 1Meg resistors.  Be sure your resistors in the voltage
+divider can handle the necessary power.
