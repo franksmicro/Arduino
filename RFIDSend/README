@@ -1,0 +1,13 @@
+This program sends arbitrary RFID codes (normal manchester
+coding).  Pin 5 should be connected to base of NPN transistor
+through 5k resistor, with 125kHz parallel LC circuit connected
+between base and emitter of transistor.  For initial testing, 
+you can just use a coil of wire without worrying about making
+it resonant, but best range will be achieved by placing a 
+capacitor in parallel with a value chosen to achieve resonance
+near 125kHz.
+
+I verified operation with the Sparkfun RFID reader.
+
+
+
