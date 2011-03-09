@@ -136,7 +136,7 @@ boolean MCP2515::setCANBaud(int baudConst)
 {
   byte brp;
   
-  //BRP<5:0> = 00h, so divisor (0+1)*2 for 167ns per quantum at 12MHz    
+  //BRP<5:0> = 00h, so divisor (0+1)*2 for 125ns per quantum at 16MHz for 500K   
   //SJW<1:0> = 00h, Sync jump width = 1
   switch(baudConst)
   {
