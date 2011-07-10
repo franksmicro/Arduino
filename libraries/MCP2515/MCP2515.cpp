@@ -385,6 +385,8 @@ long MCP2515::queryOBD(byte code)
 {
   CANMSG msg;
   long val;
+  boolean rxSuccess;
+  int noMatch;
 
   msg.adrsValue = 0x7df;
   msg.isExtendedAdrs = false;
@@ -399,13 +401,27 @@ long MCP2515::queryOBD(byte code)
   msg.data[5] = 0;
   msg.data[6] = 0;
   msg.data[7] = 0;
-
+  
   if(!transmitCANMessage(msg,1000))
     return 0;
-  
-  if(!receiveCANMessage(&msg,1000))
-    return 0;
 
+  rxSuccess = receiveCANMessage(&msg,1000);
+  if (rxSuccess) 
+  {
+    //Check if the PIDs match (in case other messages are also on bus)
+	noMatch = 0;
+    while(msg.data[2] != code)
+	{
+        rxSuccess = receiveCANMessage(&msg,1000);
+        noMatch++;
+        if (noMatch >= 5) 
+		{
+            return 0;
+        }
+    }
+  } 
+  else 
+    return 0;
     
   if(msg.data[0] == 3)
     val = msg.data[3];
