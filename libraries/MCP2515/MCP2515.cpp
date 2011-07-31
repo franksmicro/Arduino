@@ -414,7 +414,7 @@ long MCP2515::queryOBD(byte code)
 	{
         rxSuccess = receiveCANMessage(&msg,1000);
         noMatch++;
-        if (noMatch >= 5) 
+        if (!rxSuccess || noMatch >= 5) 
 		{
             return 0;
         }
