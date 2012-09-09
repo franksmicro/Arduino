@@ -18,9 +18,8 @@
 
 typedef struct
 {
-  unsigned short adrsValue;
   boolean isExtendedAdrs;
-  unsigned long extendedAdrsValue;
+  unsigned long adrsValue;
   boolean rtr;
   byte dataLength;
   byte data[8];
@@ -31,7 +30,7 @@ class MCP2515
 {
   public:
     static boolean initCAN(int baudConst);
-	static boolean setCANNormalMode();
+	static boolean setCANNormalMode(boolean singleShot);
 	static boolean setCANReceiveonlyMode();
 	static boolean receiveCANMessage(CANMSG *msg, unsigned long timeout);
 	static boolean transmitCANMessage(CANMSG msg, unsigned long timeout);

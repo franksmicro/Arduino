@@ -37,8 +37,8 @@ void setup()
   if(!MCP2515::initCAN(CAN_BAUD_500K))
     abort("Failed initCAN");
 
-  //Set to normal mode
-  if(!MCP2515::setCANNormalMode())
+  //Set to normal mode non single shot
+  if(!MCP2515::setCANNormalMode(LOW))
     abort("Failed CANNormalMode"); 
 }
 

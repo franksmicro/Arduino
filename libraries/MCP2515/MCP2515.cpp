@@ -1,6 +1,8 @@
 /*
   MCP2515.cpp - CAN library
   Written by Frank Kienast in November, 2010
+  Modified by hooovahh in September, 2012 to fix bugs in extended addressing
+	and allow single variable for both regular and extended addresses.
   
   Connections to MCP2515:
   Arduino  MCP2515
@@ -174,7 +176,7 @@ boolean MCP2515::setCANBaud(int baudConst)
   return true;
 }
 
-boolean MCP2515::setCANNormalMode()
+boolean MCP2515::setCANNormalMode(boolean singleShot)
 {
   //REQOP2<2:0> = 000 for normal mode
   //ABAT = 0, do not abort pending transmission
@@ -182,9 +184,12 @@ boolean MCP2515::setCANNormalMode()
   //CLKEN = 1, disable output clock
   //CLKPRE = 0b11, clk/8
   
+  byte settings;
   byte mode;
   
-  writeReg(CANCTRL,0b00000111);
+  settings = 0b00000111 | (singleShot << 3);
+  
+  writeReg(CANCTRL,settings);
   //Read mode and make sure it is normal
   mode = readReg(CANSTAT) >> 5;
   if(mode != 0)
@@ -217,7 +222,8 @@ boolean MCP2515::setCANReceiveonlyMode()
 boolean MCP2515::receiveCANMessage(CANMSG *msg, unsigned long timeout)
 {
     unsigned long startTime, endTime;
-    boolean gotMessage;
+    unsigned short standardID = 0;
+	boolean gotMessage;
     byte val;
     int i;
 
@@ -241,22 +247,23 @@ boolean MCP2515::receiveCANMessage(CANMSG *msg, unsigned long timeout)
       msg->rtr = ((bitRead(val,3) == 1) ? true : false);
 
       //Address received from
-      msg->adrsValue = 0;
+
       val = readReg(RXB0SIDH);
-      msg->adrsValue |= (val << 3);
+      standardID |= (val << 3);
       val = readReg(RXB0SIDL); 
-      msg->adrsValue |= (val >> 5);
+      standardID |= (val >> 5);
+	  
+	  msg->adrsValue = long(standardID);
       msg->isExtendedAdrs = ((bitRead(val,EXIDE) == 1) ? true : false);
-      msg->extendedAdrsValue = 0;
       if(msg->isExtendedAdrs)
       {
-        msg->extendedAdrsValue = (val & 0x03) << 16;
+        msg->adrsValue = ((msg->adrsValue << 2) | (val & 0b11));
         val = readReg(RXB0EID8);
-        msg->extendedAdrsValue |= (val << 8);
+		msg->adrsValue = (msg->adrsValue << 8) | val;
         val = readReg(RXB0EID0);
-        msg->extendedAdrsValue |= val;
+        msg->adrsValue = (msg->adrsValue << 8) | val;
       }
-      
+      msg->adrsValue = 0b11111111111111111111111111111 & msg->adrsValue; // mask out extra bits
       //Read data bytes
       val = readReg(RXB0DLC);
       msg->dataLength = (val & 0xf); 
@@ -280,22 +287,33 @@ boolean MCP2515::transmitCANMessage(CANMSG msg, unsigned long timeout)
   boolean sentMessage;
   unsigned short val;
   int i;
- 
+  unsigned short standardID = 0;
+  
+  standardID = short(msg.adrsValue);
   startTime = millis();
   endTime = startTime + timeout;
   sentMessage = false;
-
-  val = msg.adrsValue >> 3;
-  writeReg(TXB0SIDH,val);
-  val = msg.adrsValue << 5;
-  if(msg.isExtendedAdrs)
-    val |= 1 << EXIDE;
-  writeReg(TXB0SIDL,val);
-  if(msg.isExtendedAdrs)
+  if(!msg.isExtendedAdrs)
   {
-    val = msg.extendedAdrsValue >> 8;
-    writeReg(TXB0EID8,val);
-    val = msg.extendedAdrsValue;
+	//Write standard ID registers
+	val = standardID >> 3;
+	writeReg(TXB0SIDH,val);
+	val = standardID << 5;
+	writeReg(TXB0SIDL,val);
+  }
+  else
+  {
+	//Write extended ID registers, which use the standard ID registers
+	val = msg.adrsValue >> 21;
+	writeReg(TXB0SIDH,val);
+	val = msg.adrsValue >> 16;
+	val = val & 0b00000011;
+	val = val | (msg.adrsValue >> 13 & 0b11100000);
+	val |= 1 << EXIDE;
+	writeReg(TXB0SIDL,val);
+	val = msg.adrsValue >> 8;
+	writeReg(TXB0EID8,val);
+    val = msg.adrsValue;
     writeReg(TXB0EID0,val);
   }
   
@@ -390,7 +408,7 @@ long MCP2515::queryOBD(byte code)
 
   msg.adrsValue = 0x7df;
   msg.isExtendedAdrs = false;
-  msg.extendedAdrsValue = 0;
+  msg.adrsValue = 0;
   msg.rtr = false;
   msg.dataLength = 8;
   msg.data[0] = 0x02;
