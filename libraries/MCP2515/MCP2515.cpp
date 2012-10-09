@@ -13,8 +13,6 @@
 
 */
 
-
-#include "WProgram.h"
 #include "SPI.h"
 #include "MCP2515.h"
 
