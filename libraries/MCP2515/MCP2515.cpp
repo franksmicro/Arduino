@@ -406,7 +406,6 @@ long MCP2515::queryOBD(byte code)
 
   msg.adrsValue = 0x7df;
   msg.isExtendedAdrs = false;
-  msg.adrsValue = 0;
   msg.rtr = false;
   msg.dataLength = 8;
   msg.data[0] = 0x02;

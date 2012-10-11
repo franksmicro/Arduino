@@ -1,16 +1,18 @@
 /*
-  OBDMPG.h - Display current speed, and gas mileage stats
+  OBDMPG - Display current speed, and gas mileage stats
   (instantaneous, past minute, trip) on serial LCD display.
   Uses MCP2515 library.
   
   Written by Frank Kienast in November, 2010.
+  
+  Modified by Frank Kienast in October, 2012 for Arduino 1.
 */
 
 #include <SPI.h>
 #include <MCP2515.h>
-#include <NewSoftSerial.h>
+#include <SoftwareSerial.h>
 
-NewSoftSerial serialLCD(3,6);
+SoftwareSerial serialLCD(3,6);
 #define LCD_COMMAND 0xFE
 #define LCD_CLEAR   0x01
 #define LCD_LINE1   0x80
@@ -29,8 +31,8 @@ void setup()
 {
   serialLCD.begin(9600);
   
-  serialLCD.print(LCD_COMMAND,BYTE); serialLCD.print(LCD_CLEAR,BYTE);
-  serialLCD.print(LCD_COMMAND,BYTE); serialLCD.print(LCD_LINE1,BYTE);
+  serialLCD.write(LCD_COMMAND); serialLCD.write(LCD_CLEAR);
+  serialLCD.write(LCD_COMMAND); serialLCD.write(LCD_LINE1);
   serialLCD.print("Starting....");
   
   //Reset
@@ -75,10 +77,10 @@ void loop()
       allMpg = 0;
   }
     
-  serialLCD.print(LCD_COMMAND,BYTE); serialLCD.print(LCD_CLEAR,BYTE);
-  serialLCD.print(LCD_COMMAND,BYTE); serialLCD.print(LCD_LINE1,BYTE);
+  serialLCD.write(LCD_COMMAND); serialLCD.write(LCD_CLEAR);
+  serialLCD.write(LCD_COMMAND); serialLCD.write(LCD_LINE1);
   serialLCD.print(miPerHr,0); 
-  serialLCD.print(LCD_COMMAND,BYTE); serialLCD.print(LCD_LINE2,BYTE);
+  serialLCD.write(LCD_COMMAND); serialLCD.write(LCD_LINE2);
   serialLCD.print(mpg,1); serialLCD.print(" "); 
   serialLCD.print(minuteMpg,1); serialLCD.print(" "); 
   serialLCD.print(allMpg,1);
@@ -89,10 +91,9 @@ void loop()
 
 void abort(char *msg)
 {
-  serialLCD.print(LCD_COMMAND,BYTE); serialLCD.print(LCD_CLEAR,BYTE);
-  serialLCD.print(LCD_COMMAND,BYTE); serialLCD.print(LCD_LINE1,BYTE);
+  serialLCD.write(LCD_COMMAND); serialLCD.write(LCD_CLEAR);
+  serialLCD.write(LCD_COMMAND); serialLCD.write(LCD_LINE1);
   serialLCD.print(msg);
 
   while(true);
 }
-
