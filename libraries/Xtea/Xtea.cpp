@@ -3,8 +3,6 @@
   Written by Frank Kienast in November, 2010
 */
 
-
-#include "WProgram.h"
 #include "Xtea.h"
 
 #define NUM_ROUNDS 32
